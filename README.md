@@ -1,78 +1,419 @@
-# <h1 align="center">✨CHERWIN脚本使用指南 ✨</h1>
+🔥 劲友家小程序 JYJ.py
 
-<h2 align="center"><a href="https://github.com/CHERWING/CHERWIN_SCRIPTS/wiki/%E2%9C%A8-CHERWIN%E8%84%9A%E6%9C%AC%E4%BD%BF%E7%94%A8%E6%8C%87%E5%8D%97-%E2%9C%A8">点击查看详细使用说明</a></h2>
+✔ 支持一对一推送。
 
-<h2 align="center">✨在上海开了家打金店，有忙最近，佛系更新，脚本全开源，有能力自己改改</h2>
+🎉 功能：积分签到
+
+⚙️ 抓包步骤：
+
+打开小程序
+授权登陆
+打开抓包工具
+找jjw.jingjiu.com请求头
+authorization值
+多账号#或&分割
+【需要手动过庄园引导】
+提交示例：JYJwx eyJ0eXAiOxxxxx@UID_
+
+🔥 新增 春茧未来荟小程序 CJWLH.py
+
+✔ 支持一对一推送。
+
+🎉 功能：积分签到
+
+⚙️ 抓包步骤：
+
+打开小程序
+授权登陆
+打开抓包工具
+抓program.springcocoon.com请求头
+X-XSRF-TOKEN@Cookie值
+多账号#或&分割
+提交示例：ZMPwg2nr-kMV0HQMTNtmxxxxxxxxxxxxxxxxxxxxxxxxx@ASP.NET_SessionId=l2cxxxxxxxxxxx@UID_
+
+🔥 老板电器服务微商城小程序 LBDQ.py
+
+✔ 支持一对一推送。
+
+🎉 功能：积分签到 浏览商品 浏览文章
+
+⚙️ 抓包步骤：
+
+打开小程序
+授权登陆
+打开抓包工具
+抓vip.foxech.com
+请求body的openid值
+多账号#或&分割
+提交示例：oZXiL5b-xxxxxxxxxxxxx@UID_xxxxxxx
+
+🔥 统一快乐星球小程序 TYKLXQ.py
+
+✔ 支持一对一推送。
+
+🎉 功能：签到 转盘、集卡、消消乐游戏
+
+⚙️ 抓包步骤：
+
+打开小程序
+授权登陆
+打开抓包工具
+抓xapi.weimob.com
+请求头X-WX-Token值
+多账号#或&分割
+提交示例：8c8ff04e4f53c213faesxxxxxxxxxxxxxxxxxxxxxxxxxx@UID_xxxxxxx
+
+🔥 hotwind热风微商城小程序 RFWSC.py
+
+✔ 支持一对一推送。
+
+🎉 功能：签到
+
+⚙️ 抓包步骤：
+
+打开小程序
+授权登陆
+打开抓包工具
+抓xapi.weimob.com
+请求头X-WX-Token值
+多账号#或&分割
+提交示例：8c8ff04e4f53c213faesxxxxxxxxxxxxxxxxxxxxxxxxxx@UID_xxxxxxx
+
+🔥 伊利系列小程序（包含：甄稀冰淇淋，金典SATINE、活力伊利） YLXL.py
+
+✔ 支持一对一推送。
+
+🎉 功能：签到
+
+⚙️ 抓包步骤：
+
+打开小程序
+授权登陆
+打开抓包工具
+抓msmarket.msx.digitalyili.com
+请求头access-token值
+多账号#或&分割
+提交示例：wTUhu5IlL9uQDRelKgMRbao2bxii+O8+4FffOnxxxxxxx@UID_xxxxxxx
+
+🔥 安慕希小程序 AMX.py
+
+✔ 支持一对一推送。
+
+🎉 功能：签到
+
+⚙️ 抓包步骤：
+
+打开小程序
+授权登陆
+打开抓包工具
+抓amxshop.yili.com
+请求头accesstoken值
+多账号#或&分割
+提交示例：wTUhu5IlL9uQDRelKgMRbao2bxii+O8+4FffOnxxxxxxx@UID_xxxxxxx
+
+🔥 鸿星尔克官方会员中心小程序 HXEK.py
+
+✔ 支持一对一推送。
+
+🎉 功能：签到
+
+⚙️ 抓包步骤：
+
+打开鸿星尔克官方会员中心小程序
+授权登陆
+打开抓包工具
+抓hope.demogic.com
+请求头memberId@enterpriseId值
+多账号#或&分割
+提交示例：ff80808xxxxxxxx@ff8080817xxxxxxx@UID_xxxxxxx
+
+🔥 999会员中心小程序 JJJHYZX.py
+
+✔ 支持一对一推送。
+🎉 功能：早起打卡 每天8杯水 运动15分钟 早睡打卡
+💬 小程序邀请码(请走作者邀请码支持开发，谢谢！)
+
+⚙️ 抓包步骤：
+
+打开999会员中心小程序
+授权登陆
+打开抓包工具
+抓mc.999.com.cn
+请求头Authorization值
+多账号#或&分割
+提交示例：Authorization@UID_xxxxxxx
+
+🔥 宽哥之家小程序 KGZJ.py
+
+✔ 支持一对一推送。
+
+🎉 功能：积分签到、社区互动
+
+⚙️ 抓包步骤：
+
+打开宽哥之家小程序
+授权登陆
+打开抓包工具
+抓https://shop.sctobacco.com/api/mc-server/sso/miniloginAuto
+请求值code
+多账号#或&分割
+提交示例：code@UID_xxxxxxx
+
+🔥 口味王会员中心小程序 KWW.py
+
+✔ 支持一对一推送。
+
+🎉 功能：签到，520活动。积分雨，果园
+
+✨ 抓包步骤： 1. 开始抓包 2. 打开口味王会员中心小程序 3. 抓取.../member/api/info/获取memberId@unionid@openid 4. 多账号#或&分割
+
+提交示例：memberId@unionid@openid@UID_xxxxxxx
+
+🔥 顾家家居小程序 GJJJ.py
+
+✔ 支持一对一推送。
+
+🎉 功能：积分签到、社区互动
+
+⚙️ 抓包步骤： 1. 打开网易生活研究社小程序 2. 授权登陆 3. 打开抓包工具 4. 抓https://mc.kukahome.com/club-server/member/automaticLogin 5. 返回值identityValue@openid@unionid
+
+提交示例：identityValue@openid@unionid@UID_xxxxxxx
+
+🔥 EMS邮惠中心小程序 EMS.py
+
+✔ 支持一对一推送。
+
+🎉 功能：积分签到
+
+⚙️ 抓包步骤： 1. 打开网易生活研究社小程序 2. 授权登陆 3. 打开抓包工具 4. 抓https://ump.ems.com.cn/memberCenterApiV2/member/findByOpenIdAppId 5. 请求body里的openId
+
+提交示例：openId@UID_xxxxxxx
+
+🔥 宽哥之家小程序 KGZJ.py
+
+✔ 支持一对一推送。
+
+🎉 功能：积分签到
+
+⚙️ 抓包步骤： 1. 打开网易生活研究社小程序 2. 授权登陆 3. 打开抓包工具 4. 抓shop.sctobacco.com 5. 请求头里的token
+
+提交示例：token@UID_xxxxxxx
+
+🔥 网易生活研究社 WYSHYJS.js
+
+✔ 支持一对一推送。
+🎉 功能：积分签到
+⚙️ 抓包步骤： 打开网易生活研究社小程序 授权登陆 打开抓包工具 抓miniprogram.dingwei.netease.com下的userId@token填入变量
+提交示例：userId@token@UID_xxxxxxx
+🔥 乐事心动社小程序 LSXDS.py
+
+✔ 支持一对一推送。
+
+🎉 功能：积分签到，分享任务
+
+⚙️ 抓包步骤： 打开乐事心动社小程序 授权登陆 打开抓包工具 找https://campuscrm.pepsico.com.cn/web/user/member/access-refresh 复制返回值[Authorization]
+
+提交示例：Authorization@UID_xxxxxxx
+
+💬 小程序邀请码
+
+    
+🔥 特步会员中心小程序 TBHYZX.py
+
+✔ 支持一对一推送。
+
+🎉 功能：积分签到
+
+⚙️ 抓包步骤：
+
+打开特步会员中心小程序
+授权登陆
+打开抓包工具
+找https://wxa-tp.ezrpro.com/myvip/Base/User/WxAppOnLoginNew
+响应body里的Fields全部内容
+提交示例：{"ezr-cop-id":"888","ezr-vuid":"888888","ezr-userid":"aaaaaaa","ezr-sv":"1","ezr-st":"8888","ezr-ss":"bbbbb"}@UID_xxxxxxx
+
+💬 小程序邀请码
 
 
-<p align="center">
-  <img src="https://github.com/CHERWING/CHERWIN_SCRIPTS/assets/160421895/1c8a0f41-fb92-4b0e-abd1-0d85cba0081f" width="150">
-</p>
-<p align="center">
-点评码，有需要可以来店支持一下
-</p>
+🔥 永辉生活 YHSH.py
 
-<p align="center">
-  <img src="https://github.com/CHERWING/CHERWIN_SCRIPTS/assets/160421895/691b9f30-7d5c-4b55-8af0-0e8f14b6a424" width="150">
-</p>
+✔ 支持一对一推送。
 
-# <h2 align="center">✨开发维护不易，邀请类脚本请走作者链接，喜欢请打赏，谢谢</h2>
+🎉 功能：积分签到，种树，种树任务，成长值任务，试用申请，果园互助，组队互助，助力券。
 
-## ✨自助挂机：[https://gj.cherwin.cn](https://gj.cherwin.cn)
+💬 邀请口令：🔐6hDhYvlqIp1😀恭喜你，获得永辉生活免费会员资格。
 
-## ✨更新历史
-
-- <b>2024.06.05</b>
-    - 春茧未来荟小程序 增加反代设置
-    - 伊利系列 更新source
-      
-- <b>2024.06.03</b>
-    - 新增 劲友家小程序
-    - 卡夫亨氏 更新host
-      
-- <b>2024.06.02 18:46</b>
-    - 修复端午推币次数判断 增加采蜜容器扩容判断
+💬 小程序邀请码
 
 
-- <b>2024.06.02</b>
-    - 优化 统一快乐星球小程序最新活动id获取，自动获取活动id判断活动类型
-    - 鸿星尔克 修复签到结果判断
-    - 特步会员中心 修改动态获取signid
-
-- <b>2024.06.01</b>
-    - 新增 春茧未来荟小程序 (https://github.com/CHERWING/CHERWIN_SCRIPTS/issues/29)
-
-- <b>2024.06.01</b>
-    - 新增 老板电器服务微商城小程序(https://github.com/CHERWING/CHERWIN_SCRIPTS/issues/30)
-
-- <b>2024.05.27</b>
-    - 修复999脚本（需要自行搭建反代）
-    - 新增999域名反代搭建方法
-
-- <b>2024.05.25</b>
-    - 新增统一快乐星球小程序脚本
-    - 新增hotwind热风微商城小程序脚本
+💬 APP邀请码
 
 
-## ✨青龙订阅任务
-```
-名称：CHERWIN_SCRIPT
-类型：公开仓库
-链接：ql repo https://github.com/CHERWING/CHERWIN_SCRIPTS.git "" "Cloudflare" "CHERWIN_TOOLS.py|notify.py" "" ""
-定时类型：crontab
-定时规则：随便
-文件后缀：py|js
-```
-```
-有其他薅羊毛应用或者有新活动可以Issues提交
-格式：
-  应用名称：xxxx
-  任务奖励：xxxx
-  （有时间一定写）
-```
+⚙️ 抓包步骤：
 
-## 交流群
-[https://t.me/+UEWlgFDCcpM0ZTdh](https://t.me/+UEWlgFDCcpM0ZTdh)
+打开永辉生活APP或小程序并点击“我的”，打开抓包工具。
+点击“积分签到”，找到以下url。
+链接示例： https://api.yonghuivip.com/web/coupon/credit/coupon/getcreditcouponpageinfo/v2?xxxxx
+多账号使用 # 进行分割。
+提交示例：https://api.yonghuivip.com/web/coupon/credit/coupon/getcreditcouponpageinfo/v2?xxxxx@UID_xxxxxxx
 
-# ✨注意事项&免责申明
- 本仓库发布的脚本及其中涉及的任何解密分析脚本，仅用于测试和学习研究，禁止用于商业用途，不能保证其合法性，准确性，完整性和有效性，请根据情况自行判断。本项目内所有资源文件，禁止任何公众号、自媒体进行任何形式的转载、发布。您必须在下载后的 24 小时内从计算机或手机中完全删除以上内容。
+🔥 朴朴超市 PPCS.py
+
+✔ 支持一对一推送。
+
+🎉 功能： 积分签到 组队互助
+
+💬 邀请码：
+
+
+⚙️ 抓包步骤：
+
+打开朴朴超市APP，已登录直接清理应用数据。
+打开抓包。
+抓包链接示例： https://mcs-mimp-web.sf-express.com/mcs-mimp/share/weChat/shareGiftReceiveRedirect
+登陆。
+找https://cauth.pupuapi.com/clientauth/user/verify_login
+复制返回body中的refresh_token
+多账号#或&分割
+提交示例：refresh_token@UID_xxxxxxx
+
+🔥 顺丰速运 SFSY.py
+
+✔ 支持一对一推送。
+
+🎉 功能：积分签到,签到任务
+
+⚙️ 抓包步骤：
+
+打开顺丰速运APP或小程序并点击“我的”，打开抓包工具。
+点击“积分”，找到带以下url复制。
+链接示例： https://mcs-mimp-web.sf-express.com/mcs-mimp/share/weChat/shareGiftReceiveRedirect
+多账号使用 # 进行分割。
+提交示例：https://mcs-mimp-web.sf-express.com/mcs-mimp/share/weChat/shareGiftReceiveRedirect******@UID_xxxxxxx
+
+🔥 德邦快递 DBKD.py
+
+✔ 支持一对一推送。
+
+🎉 功能：积分签到
+
+✨ 抓包步骤： 1. 打开德邦快递小程序 2. 授权登陆 3. 打开抓包工具 4. 找到https://www.deppon.com/ndcc-gwapi/userService/eco/user/login请求中body里面的[code] 5. 复制里面的[code]参数值
+
+提交示例：code@UID_xxxxxxx
+
+🔥 统一茄皇 TYQH.py
+
+✔ 支持一对一推送。
+
+🎉 功能：日常任务，互助任务
+
+✨ 抓包步骤： 1. 打开统一快乐星球小程序-活动 2. 开始抓包-茄皇的家第三期 3. 抓取.../public/api/login获取thirdId@wid 4. 多账号#或&分割
+
+提交示例：thirdId@wid@UID_xxxxxxx
+
+🔥 统一茄皇监控 TYQH_JK.py
+
+✔ 支持一对一推送。
+🎉 功能：2-6月每月1日自动兑换
+🔥 海底捞小程序 HDL.py
+
+✔ 支持一对一推送。
+
+🎉 功能：签到
+
+✨ 抓包步骤： 1. 开始抓包 2. 打开海底捞小程序 3. 抓取https://superapp-public.kiwa-tech.com/api/gateway/login/center/login/wechatLogin 4. 获取openId@uid 5. 多账号#或&分割
+
+提交示例：openId@uid@UID_xxxxxxx
+
+🔥 奈雪点单小程序 NXDD.py
+
+✔ 支持一对一推送。
+
+🎉 功能：签到
+
+✨ 抓包步骤： 1. 开始抓包 2. 打开奈雪点单 3. 抓取任意url获取Authorization 4. 多账号#或&分割
+
+提交示例：Authorization@UID_xxxxxxx
+
+🔥 霸王茶姬小程序 BWCJ.py
+
+✔ 支持一对一推送。
+
+🎉 功能：签到
+
+✨ 抓包步骤： 1. 开始抓包 2. 打开霸王茶姬小程序 3. 抓取任意url获取qm-user-token 4. 多账号#或&分割
+
+提交示例：qm-user-token@UID_xxxxxxx
+
+🔥 韵达快递小程序 YDKD.py
+
+✔ 支持一对一推送。
+
+🎉 功能：签到
+
+✨ 抓包步骤： 1. 开始抓包 2. 打开韵达快递小程序 3. 抓取任意url获取Authorization 4. 多账号#或&分割
+
+提交示例：Authorization@UID_xxxxxxx
+
+🔥 中通快递小程序 ZTKD.py
+
+✔ 支持一对一推送。
+
+🎉 功能：签到
+
+✨ 抓包步骤： 1. 开始抓包 2. 打开韵达快递小程序 3. 找https://api.ztomember.com/api/user/point/get 请求头里的[token]，短的不是长的 4. 多账号#或&分割
+
+提交示例：token@UID_xxxxxxx
+
+🔥 极兔速递小程序 JTSD.py
+
+✔ 支持一对一推送。
+
+🎉 功能：签到
+
+✨ 抓包步骤： 1. 开始抓包 2. 打开韵达快递小程序 3. 抓取任意url获取authtoken 4. 多账号#或&分割
+
+提交示例：authtoken@UID_xxxxxxx
+
+🔥 卡夫亨氏新厨艺公众号 KFHS.py
+
+✔ 支持一对一推送。
+🎉 功能：签到
+✨ 注册链接（复制微信打开）：https://fscrm.kraftheinz.net.cn/?from=N8d3E4AyKCBiu7DuBRNPlw==#/
+
+✨ 抓包步骤： 1. 开始抓包 2. 打开韵达快递小程序 3. 抓取任意url获取token 4. 多账号#或&分割
+
+提交示例：token@UID_xxxxxxx
+
+🔥 天翼云盘 TYYP.py
+
+✔ 支持一对一推送。
+
+🎉 功能：签到
+
+✨ 变量：手机号@密码
+
+多账号#或&分割
+
+提交示例：手机号@密码@UID_xxxxxxx
+
+🔥 蜜雪冰城小程序签到 MXBC.py
+
+✔ 支持一对一推送。
+
+🎉 功能：签到
+
+✨ 抓包步骤： 1. 开始抓包 2. 打开蜜雪冰城小程序 3. 授权登陆 4. 找https://mxsa.mxbc.net/api/v1/app/loginByUnionid的URl(如果已经授权登陆先退出登陆) 5. 复制里面的unionid参数值
+
+提交示例：unionid@UID_xxxxxxx
+
+🔥 夸克云盘 KKYP.py
+
+✔ 支持一对一推送。
+
+🎉 功能：签到
+
+✨ 变量：cookies
+
+提交示例：cookies@UID_xxxxxxx

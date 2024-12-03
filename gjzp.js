@@ -1,21 +1,27 @@
 /**
- * 海底捞小程序签到
- * cron 9 15 * * *  hdl.js
- * 
+ * 工匠职聘
+ * cron 52 8 * * *  gjzp.js
+ *
+ * 22/12/10 每日签到 赚工分 
+ * 22/12/11 每日红包奖励 判定CK是否有效 
+ * 23/01/23 删除抽奖,修复BUG
  * ========= 青龙--配置文件 ===========
  * # 项目名称
- * export hdl_data='token @ token'
+ * export gjzp_data='authorization&android'
  * 
- * 多账号用 换行 或 @ 分割
- * 抓包 https://superapp-public.kiwa-tech.com/activity/wxapp , 找到 _haidilao_app_token 即可
+ * 多账号用  @ 分割
+ * 抓包 api-recruitment.yzw.cn , 找到 headers中 authorization 即可 
+ * 如果你是ios端请在authorization后加上ios如果是android请输入android  必须小写
+ * 首次使用请 去本APP => 我的 => 横幅 > 工分夺宝处首抽一次(绑定你的微信小程序)  否则不绑定抽不了奖
+ * 如果是先注册小程序后再去APP,就无需绑定了 直接抓CK即可
  * ====================================
  *   
  */
 
 
 
-const $ = new Env("海底捞小程序签到");
-const ckName = "hdl_data";
+const $ = new Env("工匠职聘");
+const ckName = "gjzp_data";
 //-------------------- 一般不动变量区域 -------------------------------------
 const Notify = 1;		 //0为关闭通知,1为打开通知,默认为1
 let debug = 1;           //Debug调试   0关闭  1开启
@@ -30,22 +36,25 @@ let userCount = 0;
 //---------------------------------------------------------
 
 async function start() {
-
-
-    console.log('\n================== 用户CK ==================\n');
+    console.log('\n================== 用户查询 ==================\n');
     taskall = [];
     for (let user of userList) {
-        taskall.push(await user.user_info());
-        await $.wait(1000); //延迟  1秒  可充分利用 $.环境函数
+        taskall.push(await user.user_info(1));
+        await $.wait(3000); //延迟
     }
     await Promise.all(taskall);
-    console.log('\n================== 每日签到 ==================\n');
+    console.log('\n================== 红包签到 ==================\n');
     taskall = [];
     for (let user of userList) {
-        if (user.ckStatus) {
-            taskall.push(await user.task_signin());
-            await $.wait(1000); //延迟  1秒  可充分利用 $.环境函数
-        }
+        await user.task_sign('红包签到')
+        await $.wait(3000); //延迟
+    }
+    await Promise.all(taskall);
+    console.log('\n================== 日常任务 ==================\n');
+    taskall = [];
+    for (let user of userList) {
+        await user.task_see();
+        await $.wait(3000); //延迟
     }
     await Promise.all(taskall);
 
@@ -57,87 +66,240 @@ async function start() {
 class UserInfo {
     constructor(str) {
         this.index = ++userIdx;
-        this.ck = str.split('&')[0]; //单账号多变量分隔符
+        this.cktest = str.split('&')[0]; //单账号多变量分隔符
+        //this.deviceid = str.split('&')[1]; //单账号多变量分隔符
+        this.ck = "Bearer " + this.cktest.replace('Bearer', '')
+        this.PhoneType = str.split('&')[1];
         //let ck = str.split('&')
         //this.data1 = ck[0]
-        this.ckStatus = true
-
+        //this.host = "echo.apipost.cn";
+        //this.hostname = "https://" + this.host;
     }
-    async user_info() {
+
+    async user_info(type) { // userinfo
         try {
             let options = {
-                url: `https://superapp-public.kiwa-tech.com/activity/wxapp/signin/queryFragment`,
+                method: 'POST',
+                url: 'https://api-recruitment.yzw.cn/v2/labor/app/user/getUserBaseInfo',
                 headers: {
-                    'Host': 'superapp-public.kiwa-tech.com',
-                    'deviceid': 'null',
-                    'accept': 'application/json, text/plain, */*',
-                    'Content-Type': 'application/json',
-                    'user-agent': 'Mozilla/5.0 (Linux; Android 10; MI 8 Lite Build/QKQ1.190910.002; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/86.0.4240.99 XWEB/4435 MMWEBSDK/20221206 Mobile Safari/537.36 MMWEBID/2585 MicroMessenger/8.0.32.2300(0x2800205D) WeChat/arm64 Weixin NetType/WIFI Language/zh_CN ABI/arm64 miniProgram/wx1ddeb67115f30d1a',
-                    'reqtype': 'APPH5',
-                    '_haidilao_app_token': this.ck,
-                    'origin': 'https://superapp-public.kiwa-tech.com',
-                    'x-requested-with': 'com.tencent.mm',
-                    'sec-fetch-site': 'same-origin',
-                    'sec-fetch-mode': 'cors',
-                    'sec-fetch-dest': 'empty',
-                    'referer': 'https://superapp-public.kiwa-tech.com/app-sign-in/?SignInToken=TOKEN_APP_43d25436-b429-4233-b8b2-1154d2f20cb1&source=MiniApp',
+                    Host: 'api-recruitment.yzw.cn',
+                    accept: 'application/json, text/plain, */*',
+                    version: '2.14.0',
+                    authorization: this.ck,
+                    appsourcetype: '1',
+                    //'x-device-id': this.deviceid,
+                    //'x-flow-num': 'f4a3d43f-50c8-4d50-9287-834894e86339',
+                    //'x-device': 'zhipin/android/29/2.14.0/392.72727272727275/829.0909090909091/2.75',
+                    'content-type': 'application/json',
+                    //'content-length': '11',
+                    //'accept-encoding': 'gzip',
+                    //cookie: 'acw_tc=2f624a4016706498913978918e4b42d68638eccb6145bcc0a89b50a20dab88',
+                    //'user-agent': 'okhttp/4.9.2'
                 },
-                body: ''
-            }
+                body: {},
+                json: true
+            };
+            options = changeCode(options)
             //console.log(options);
             let result = await httpRequest(options);
             //console.log(result);
-            if (result.success == true) {
-                DoubleLog(`账号[${this.index}]  ck验证成功: 剩余[${result.data.total}] `);
-                this.ckStatus = true
-
-            } else {
-                DoubleLog(`账号[${this.index}]  ck验证失效:,原因未知！`);
-                this.ckStatus = false
-
-                console.log(result);
+            if (type == 1) {
+                if (result.code == 20000) {
+                    DoubleLog(`账号[${this.index}]  账号: [${result.data.userId}] 昵称[${result.data.name}] 工分余额[${result.data.totalScore}]`);
+                    //let userId = result.data.userId
+                    //return userId
+                } else if (result.code == 40005) {
+                    DoubleLog(`账号[${this.index}]  用户信息查询:失败 ❌ 了呢,原因${result.message}`);//没次数
+                    console.log(result);
+                } else {
+                    DoubleLog(`账号[${this.index}]  用户信息查询:失败 ❌ 了呢,原因未知`);
+                    console.log(result);
+                }
+            } else if (type == 0) {
+                if (result.code == 20000) {
+                    let userId = result.data.userId
+                    return userId
+                } else if (result.code == 40005) {
+                    console.log(result);
+                } else {
+                }
             }
-        } catch (e) {
-            console.log(e);
+        } catch (error) {
+            console.log(error);
         }
     }
-    async task_signin() {
+    async task2() { // task2 红包任务列表
         try {
             let options = {
-                url: `https://superapp-public.kiwa-tech.com/activity/wxapp/signin/signin`,
+                method: 'GET',
+                url: 'https://api-recruitment.yzw.cn/v2/labor/app/sign/tasks',
                 headers: {
-                    'Host': 'superapp-public.kiwa-tech.com',
-                    'deviceid': 'null',
-                    'accept': 'application/json, text/plain, */*',
-                    'Content-Type': 'application/json',
-                    'user-agent': 'Mozilla/5.0 (Linux; Android 10; MI 8 Lite Build/QKQ1.190910.002; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/86.0.4240.99 XWEB/4435 MMWEBSDK/20221206 Mobile Safari/537.36 MMWEBID/2585 MicroMessenger/8.0.32.2300(0x2800205D) WeChat/arm64 Weixin NetType/WIFI Language/zh_CN ABI/arm64 miniProgram/wx1ddeb67115f30d1a',
-                    'reqtype': 'APPH5',
-                    '_haidilao_app_token': this.ck,
-                    'origin': 'https://superapp-public.kiwa-tech.com',
-                    'x-requested-with': 'com.tencent.mm',
-                    'sec-fetch-site': 'same-origin',
-                    'sec-fetch-mode': 'cors',
-                    'sec-fetch-dest': 'empty',
-                    'referer': 'https://superapp-public.kiwa-tech.com/app-sign-in/?SignInToken=TOKEN_APP_43d25436-b429-4233-b8b2-1154d2f20cb1&source=MiniApp',
-                },
-                body: JSON.stringify({ "signinSource": "MiniApp" })
-            }
+                    Host: 'api-recruitment.yzw.cn',
+                    accept: 'application/json, text/plain, */*',
+                    version: '2.14.0',
+                    authorization: this.ck,
+                    appsourcetype: '1',
+                    //'x-device-id': this.deviceid,
+                    //'x-flow-num': 'f4a3d43f-50c8-4d50-9287-834894e86339',
+                    //'x-device': 'zhipin/android/29/2.14.0/392.72727272727275/829.0909090909091/2.75',
+                    //'accept-encoding': 'gzip',
+                    //cookie: 'acw_tc=2f624a4016706498913978918e4b42d68638eccb6145bcc0a89b50a20dab88',
+                    //'user-agent': 'okhttp/4.9.2'
+                }
+            };
+            options = changeCode(options)
             //console.log(options);
             let result = await httpRequest(options);
             //console.log(result);
-            if (result.success == true) {
-                DoubleLog(`账号[${this.index}]  签到成功: `);
-
+            if (result.code == 20000) {
+                //DoubleLog(`账号[${this.index}]  账号: [${result.data.userId}] 昵称[${result.data.name}] 工分余额[${result.data.totalScore}]`);
+            } else if (result.code == 40005) {
+                //DoubleLog(`账号[${this.index}]  用户信息查询:失败 ❌ 了呢,原因${result.message}`);//没次数
+                //console.log(result);
             } else {
-                DoubleLog(`账号[${this.index}]  签到失效:,原因未知！`);
-                console.log(result);
+                //DoubleLog(`账号[${this.index}]  用户信息查询:失败 ❌ 了呢,原因未知`);
+                //console.log(result);
             }
-        } catch (e) {
-            console.log(e);
+            return result
+        } catch (error) {
+            console.log(error);
         }
     }
 
+    async task_sign() { // 红包签到
+        //console.log(this.cktest.replace('Bearer', ''))
+        try {
+            let options = {
+                method: 'GET',
+                url: 'https://api-recruitment.yzw.cn/v2/labor/app/sign/sign',
+                headers: {
+                    Host: 'api-recruitment.yzw.cn',
+                    accept: 'application/json, text/plain, */*',
+                    version: '2.14.0',
+                    authorization: this.ck,
+                    appsourcetype: '1',
+                    //'x-device-id': this.deviceid,
+                    //'x-flow-num': '71abe6e4-2a7f-4c5a-89db-81a002139135',
+                    //'x-device': 'zhipin/android/29/2.14.0/392.72727272727275/829.0909090909091/2.75',
+                    //cookie: 'acw_tc=2f624a2e16706248652012563e316a3fc1bfc16d803e478a49dfb0ce7727bd',
+                    //'user-agent': 'okhttp/4.9.2',
+                    //'if-modified-since': 'Fri, 09 Dec 2022 05:21:36 GMT'
+                }
+            };
+            options = changeCode(options)
+            //console.log(options);
+            let result = await httpRequest(options);
+            //console.log(result);
+            if (result.code == 20000) {
+                DoubleLog(`账号[${this.index}]  签到成功获得: ${result.message}`);
+            } else if (result.code == 40005) {
+                DoubleLog(`账号[${this.index}]  签到:失败 ❌ 了呢,原因${result.message}！`);
+            } else {
+                console.log(result)
+            }
+        } catch (error) {
+            console.log(error);
+        }
+    }
 
+    async task_see() {
+        let t2 = await this.task2()
+        if (t2.code == 20000) {
+            for (let o in t2.data) {
+                let id = await this.user_info(0)
+                if (t2.data[o].id == "13" && t2.data[o].status == 0) {
+                    await this.task_see3()
+                    await $.wait(10000)
+                } else if (t2.data[o].id == "13" && t2.data[o].status == 1) {
+                    console.log(`账号[${this.index}]任务红包浏览首页完成`);
+                }
+                if (t2.data[o].id == "18" && t2.data[o].status == 0) {
+                    //console.log(t2.data[o]);
+                    for (let i = 0; i < 2; i++) {
+                        await this.task_see4(id)
+                        await $.wait(10000)
+                    }
+                } else if (t2.data[o].id == "18" && t2.data[o].status == 1) {
+                    //await this.task_see4("红包分享职位",id)
+                    console.log(`账号[${this.index}]任务红包分享职位完成`);
+                }
+            }
+        }
+    }
+
+    async task_see3() { //红包任务 浏览首页
+        try {
+            let options = {
+                method: 'POST',
+                url: 'https://api-recruitment.yzw.cn/v2/labor/app/browseCollectRecord/add',
+                headers: {
+                    Host: 'api-recruitment.yzw.cn',
+                    accept: 'application/json, text/plain, */*',
+                    version: '2.14.0',
+                    authorization: this.ck,
+                    appsourcetype: '1',
+                    //'x-device-id': 'd310c38476e58308d310c38476e58308d310c38476e58308d310c38476e58308',
+                    //'x-flow-num': 'd019070d-f032-4ffc-9737-188c477cb2ee',
+                    //'x-device': 'zhipin/android/29/2.14.0/392.72727272727275/829.0909090909091/2.75',
+                    'content-type': 'application/json',
+                    'user-agent': 'okhttp/4.9.2'
+                },
+                body: { type: 1, recordType: 7 },
+                json: true
+            };
+            options = changeCode(options)
+            //console.log(options);
+            let result = await httpRequest(options);
+            //console.log(result);
+            if (result.code == 20000) {
+                DoubleLog(`账号[${this.index}]  红包任务浏览首页成功${result.data}`);
+                console.log('本次可能获得0.05');
+            } else if (result.code == 40005) {
+                DoubleLog(`账号[${this.index}]  红包任务浏览首页:失败 ❌ 了呢,原因${result.message}`);
+                //console.log(result);
+            } else {
+                DoubleLog(`账号[${this.index}]  红包任务浏览首页:失败 ❌ 了呢,原因未知`);
+                console.log(result);
+            }
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
+    async task_see4(userId) { // 红包任务 分享职业卡片
+        try {
+            let options = {
+                method: 'POST',
+                url: 'https://api-recruitment.yzw.cn/v2/labor/app/userShareRecord/add',
+                headers: {
+                    Host: 'api-recruitment.yzw.cn',
+                    accept: 'application/json, text/plain, */*',
+                    version: '2.14.0',
+                    authorization: this.ck,
+                    appsourcetype: '1',
+                    'content-type': 'application/json'
+                },
+                body: { shareTarget: 0, userId: userId, shareType: 1, shareOtherId: 44207 },
+                json: true
+            };
+            options = changeCode(options)
+            //console.log(options);
+            let result = await httpRequest(options);
+            //console.log(result);
+            if (result.code == 20000) {
+                DoubleLog(`账号[${this.index}]  红包任务 分享职位 成功${result.data}`);
+                console.log('本次可能获得0.02');
+            } else if (result.code == 40005) {
+                DoubleLog(`账号[${this.index}]  红包任务 分享职位:失败 ❌ 了呢,原因${result.message}`);
+                //console.log(result);
+            } else {
+                DoubleLog(`账号[${this.index}]  红包任务 分享职位:失败 ❌ 了呢,原因未知`);
+                console.log(result);
+            }
+        } catch (error) {
+            console.log(error);
+        }
+    }
 
 
 }
@@ -173,7 +335,33 @@ async function checkEnv() {
     return console.log(`共找到${userCount}个账号`), true;//true == !0
 }
 /////////////////////////////////////////////////////////////////////////////////////
-
+function changeCode(oldoptions) {
+    let newoptions = new Object(),
+        urlTypeArr = ['qs', 'params'],
+        bodyTypeArr = ['body', 'data', 'form', 'formData']
+    for (let e in urlTypeArr) {
+        urlTypeArr[e] in oldoptions ? newoptions.url = changeUrl(urlTypeArr[e]) : newoptions.url = oldoptions.url
+    }
+    'content-type' in oldoptions.headers ? newoptions.headers = changeHeaders(oldoptions.headers) : newoptions.headers = oldoptions.headers
+    function changeUrl(type) {
+        url = oldoptions.url + '?'
+        for (let key in oldoptions[type]) { url += key + '=' + oldoptions[type][key] + '&' }
+        url = url.substring(0, url.length - 1)
+        return url
+    }
+    function changeHeaders(headers) {
+        let tmp = headers['content-type']
+        delete headers['content-type']
+        headers['Content-Type'] = tmp
+        return headers
+    }
+    for (let o in bodyTypeArr) {
+        if (bodyTypeArr[o] in oldoptions) {
+            (Object.prototype.toString.call(oldoptions[bodyTypeArr[o]]) === '[object Object]') ? newoptions.body = JSON.stringify(oldoptions[bodyTypeArr[o]]) : newoptions.body = oldoptions[bodyTypeArr[o]]
+        }
+    }
+    return newoptions
+}
 function httpRequest(options, method) {
     //options = changeCode(options)
     typeof (method) === 'undefined' ? ('body' in options ? method = 'post' : method = 'get') : method = method

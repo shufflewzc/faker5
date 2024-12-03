@@ -1,21 +1,22 @@
 /**
- * 海底捞小程序签到
- * cron 9 15 * * *  hdl.js
- * 
+ * 海尔智家
+ * cron 8 1 * * *  hezj.js
+ * 活动入口 首页 智慧小屋
+ * 2023/03/18 修复BUG
  * ========= 青龙--配置文件 ===========
  * # 项目名称
- * export hdl_data='token @ token'
+ * export hezj_data='token&clientId @ token&clientId '
  * 
  * 多账号用 换行 或 @ 分割
- * 抓包 https://superapp-public.kiwa-tech.com/activity/wxapp , 找到 _haidilao_app_token 即可
+ * 抓包 https://mps.haiersmarthomes.com/api-gw , 找到accounttoken/accesstoken & clientId即可
  * ====================================
  *   
  */
 
 
 
-const $ = new Env("海底捞小程序签到");
-const ckName = "hdl_data";
+const $ = new Env("海尔智家");
+const ckName = "hezj_data";
 //-------------------- 一般不动变量区域 -------------------------------------
 const Notify = 1;		 //0为关闭通知,1为打开通知,默认为1
 let debug = 1;           //Debug调试   0关闭  1开启
@@ -31,20 +32,44 @@ let userCount = 0;
 
 async function start() {
 
-
     console.log('\n================== 用户CK ==================\n');
     taskall = [];
     for (let user of userList) {
-        taskall.push(await user.user_info());
-        await $.wait(1000); //延迟  1秒  可充分利用 $.环境函数
+        taskall.push(await user.task_userinfo());
+        await $.wait(3000); //延迟  1秒  可充分利用 $.环境函数
     }
     await Promise.all(taskall);
-    console.log('\n================== 每日签到 ==================\n');
+    console.log('\n================== 用户签到 ==================\n');
     taskall = [];
     for (let user of userList) {
         if (user.ckStatus) {
+
             taskall.push(await user.task_signin());
-            await $.wait(1000); //延迟  1秒  可充分利用 $.环境函数
+            await $.wait(3000); //延迟  1秒  可充分利用 $.环境函数
+        }
+    }
+    await Promise.all(taskall);
+    console.log('\n================== 获取任务列表 ==================\n');
+    taskall = [];
+    for (let user of userList) {
+        if (user.ckStatus) {
+            taskall.push(await user.task_list());
+            await $.wait(3000); //延迟  1秒  可充分利用 $.环境函数
+        }
+    }
+    await Promise.all(taskall);
+    console.log('\n================== 执行任务 ==================\n');
+    taskall = [];
+    for (let user of userList) {
+        if (user.ckStatus) {
+            for (let num in user.taskList) {
+                if (user.taskList[num].taskStatus == 0) {
+                    taskall.push(await user.task_do(user.taskList[num].taskCode));
+                } else {
+                    console.log('当前任务已完成');
+                }
+            }
+            await $.wait(5000); //延迟  1秒  可充分利用 $.环境函数
         }
     }
     await Promise.all(taskall);
@@ -58,43 +83,47 @@ class UserInfo {
     constructor(str) {
         this.index = ++userIdx;
         this.ck = str.split('&')[0]; //单账号多变量分隔符
+        this.clientid = str.split('&')[1];
         //let ck = str.split('&')
         //this.data1 = ck[0]
         this.ckStatus = true
+        this.taskList = '';
+        this.headersPost = {
+            'Host': 'mps.haiersmarthomes.com',
+            'accesstoken': this.ck,
+            'origin': 'https://zjrs.haier.net',
+            'user-agent': 'Mozilla/5.0 (Linux; U; Android 10; zh-CN; MI 8 Lite Build/QKQ1.190910.002) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/69.0.3497.100 UWS/3.22.2.55 Mobile Safari/537.36 UCBS/3.22.2.55_220929181439 ChannelId(1) NebulaSDK/1.8.100112 Nebula  App/Uplus Nebula mPaaSClient',
+            'Content-Type': 'application/json;charset=UTF-8',
+            'accept': 'application/json, text/plain, */*',
+            'clientid': this.clientid,
+            'timestamp': ts13(),
+            'accounttoken': this.ck,
+            'appid': 'MB-UZHSH-0000',
+            'appkey': 'f50c76fbc8271d361e1f6b5973f54585',
+            'appversion': '7.19.0',
+            'referer': 'https://zjrs.haier.net/haierActivitys/intelligentHouse/index.html?container_type=3&hybrid_navbar_hidden=true&needAuthLogin=1&needLogin=1&needShare=1&checkGuestMode=1',
+            //'accept-encoding: 'gzip, deflate'
+            //'accept-language': 'zh-CN,en-US;q=0.9'
+            'x-requested-with': 'com.haier.uhome.uplus'
+        }
 
     }
-    async user_info() {
+    async task_userinfo() {//userinfo
         try {
             let options = {
-                url: `https://superapp-public.kiwa-tech.com/activity/wxapp/signin/queryFragment`,
-                headers: {
-                    'Host': 'superapp-public.kiwa-tech.com',
-                    'deviceid': 'null',
-                    'accept': 'application/json, text/plain, */*',
-                    'Content-Type': 'application/json',
-                    'user-agent': 'Mozilla/5.0 (Linux; Android 10; MI 8 Lite Build/QKQ1.190910.002; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/86.0.4240.99 XWEB/4435 MMWEBSDK/20221206 Mobile Safari/537.36 MMWEBID/2585 MicroMessenger/8.0.32.2300(0x2800205D) WeChat/arm64 Weixin NetType/WIFI Language/zh_CN ABI/arm64 miniProgram/wx1ddeb67115f30d1a',
-                    'reqtype': 'APPH5',
-                    '_haidilao_app_token': this.ck,
-                    'origin': 'https://superapp-public.kiwa-tech.com',
-                    'x-requested-with': 'com.tencent.mm',
-                    'sec-fetch-site': 'same-origin',
-                    'sec-fetch-mode': 'cors',
-                    'sec-fetch-dest': 'empty',
-                    'referer': 'https://superapp-public.kiwa-tech.com/app-sign-in/?SignInToken=TOKEN_APP_43d25436-b429-4233-b8b2-1154d2f20cb1&source=MiniApp',
-                },
-                body: ''
+                url: `https://mps.haiersmarthomes.com/api-gw/wisdomHouseActivity/activity/index`,
+                headers: this.headersPost,
+                body: JSON.stringify({ "sourceClient": 1 })
             }
             //console.log(options);
             let result = await httpRequest(options);
             //console.log(result);
-            if (result.success == true) {
-                DoubleLog(`账号[${this.index}]  ck验证成功: 剩余[${result.data.total}] `);
+            if (result.retCode == '00000') {
+                DoubleLog(`账号[${this.index}]  ck验证成功: [${result.data.nickName}] 当前贝壳 [${result.data.wisdomStarBalance}] `);
                 this.ckStatus = true
-
             } else {
-                DoubleLog(`账号[${this.index}]  ck验证失效:,原因未知！`);
+                DoubleLog(`账号[${this.index}]  ck验证失效,原因未知！`);
                 this.ckStatus = false
-
                 console.log(result);
             }
         } catch (e) {
@@ -104,39 +133,64 @@ class UserInfo {
     async task_signin() {
         try {
             let options = {
-                url: `https://superapp-public.kiwa-tech.com/activity/wxapp/signin/signin`,
-                headers: {
-                    'Host': 'superapp-public.kiwa-tech.com',
-                    'deviceid': 'null',
-                    'accept': 'application/json, text/plain, */*',
-                    'Content-Type': 'application/json',
-                    'user-agent': 'Mozilla/5.0 (Linux; Android 10; MI 8 Lite Build/QKQ1.190910.002; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/86.0.4240.99 XWEB/4435 MMWEBSDK/20221206 Mobile Safari/537.36 MMWEBID/2585 MicroMessenger/8.0.32.2300(0x2800205D) WeChat/arm64 Weixin NetType/WIFI Language/zh_CN ABI/arm64 miniProgram/wx1ddeb67115f30d1a',
-                    'reqtype': 'APPH5',
-                    '_haidilao_app_token': this.ck,
-                    'origin': 'https://superapp-public.kiwa-tech.com',
-                    'x-requested-with': 'com.tencent.mm',
-                    'sec-fetch-site': 'same-origin',
-                    'sec-fetch-mode': 'cors',
-                    'sec-fetch-dest': 'empty',
-                    'referer': 'https://superapp-public.kiwa-tech.com/app-sign-in/?SignInToken=TOKEN_APP_43d25436-b429-4233-b8b2-1154d2f20cb1&source=MiniApp',
-                },
-                body: JSON.stringify({ "signinSource": "MiniApp" })
+                url: `https://mps.haiersmarthomes.com/api-gw/wisdomHouseActivity/sign/signIn`,
+                headers: this.headersPost,
+                body: JSON.stringify({ "sourceClient": 1 })
             }
             //console.log(options);
             let result = await httpRequest(options);
             //console.log(result);
-            if (result.success == true) {
-                DoubleLog(`账号[${this.index}]  签到成功: `);
-
+            if (result.retCode == '00000') {
+                DoubleLog(`账号[${this.index}]  签到成功: 累计签到[${result.data.signDays}] `);
             } else {
-                DoubleLog(`账号[${this.index}]  签到失效:,原因未知！`);
+                DoubleLog(`账号[${this.index}]  签到失效,原因未知！`);
+
                 console.log(result);
             }
         } catch (e) {
             console.log(e);
         }
     }
+    async task_list() {//任务列表
+        try {
+            let options = {
+                url: `https://mps.haiersmarthomes.com/api-gw/wisdomHouseActivity/task/queryTask`,
+                headers: this.headersPost,
+                body: JSON.stringify({ "publishType": 2, "sourceClient": 1 })
+            }
+            //console.log(options);
+            let result = await httpRequest(options);
+            //console.log(result);
+            if (result.retCode == '00000') {
+                this.taskList = result.data.taskList
+            } else {
+                console.log(result);
+            }
+        } catch (e) {
+            console.log(e);
+        }
+    }
+    async task_do(taskCode) {//任务列表
+        try {
+            let options = {
+                url: `https://mps.haiersmarthomes.com/api-gw/wisdomHouseActivity/task/doTask`,
+                headers: this.headersPost,
+                body: JSON.stringify({ "taskCode": taskCode, "sourceClient": 1 })
+            }
+            //console.log(options);
+            let result = await httpRequest(options);
+            //console.log(result);
+            if (result.retCode == '00000') {
+                DoubleLog(`账号[${this.index}]  任务执行成功: [${taskCode}] `);
 
+            } else {
+                DoubleLog(`账号[${this.index}]  任务执行失效:,原因未知！`);
+                console.log(result);
+            }
+        } catch (e) {
+            console.log(e);
+        }
+    }
 
 
 
@@ -205,6 +259,9 @@ function httpRequest(options, method) {
             }
         })
     })
+}
+function ts13() {
+    return Math.round(new Date().getTime()).toString();
 }
 // 双平台log输出
 function DoubleLog(data) {

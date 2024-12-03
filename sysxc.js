@@ -1,49 +1,45 @@
 /**
- * 海底捞小程序签到
- * cron 9 15 * * *  hdl.js
- * 
+ * 书亦烧仙草
+ * cron 11 8 * * *  sysxc.js
+ * 23/04/15 内部使用
  * ========= 青龙--配置文件 ===========
  * # 项目名称
- * export hdl_data='token @ token'
+ * export sysxc_data='auth'
  * 
- * 多账号用 换行 或 @ 分割
- * 抓包 https://superapp-public.kiwa-tech.com/activity/wxapp , 找到 _haidilao_app_token 即可
+ * 多账号用  @ 分割
+ * 抓包 https://scrm-prod.shuyi.org.cn , 找到 headrs中的auth 即可
+ * author : TencentGroupCode 862839604
+ * GitHub : https://github.com/smallfawn/QLScriptPublic
+ * 制作不易请大家给Github仓库点点star
  * ====================================
  *   
  */
 
 
 
-const $ = new Env("海底捞小程序签到");
-const ckName = "hdl_data";
+const $ = new Env("书亦烧仙草");
+const ckName = "sysxc_data";
 //-------------------- 一般不动变量区域 -------------------------------------
-const Notify = 1;		 //0为关闭通知,1为打开通知,默认为1
-let debug = 1;           //Debug调试   0关闭  1开启
-let envSplitor = ["@", "\n"]; //多账号分隔符
-let ck = msg = '';       //let ck,msg
-let host, hostname;
+const Notify = 1;         //0为关闭通知,1为打开通知,默认为1
+const notify = $.isNode() ? require('./sendNotify') : '';
+let envSplitor = ["@"]; //多账号分隔符
+let msg = '';       //let ck,msg
 let userCookie = ($.isNode() ? process.env[ckName] : $.getdata(ckName)) || '';
 let userList = [];
 let userIdx = 0;
 let userCount = 0;
 //---------------------- 自定义变量区域 -----------------------------------
+const crypto = require('crypto');
 //---------------------------------------------------------
 
 async function start() {
 
-
-    console.log('\n================== 用户CK ==================\n');
-    taskall = [];
-    for (let user of userList) {
-        taskall.push(await user.user_info());
-        await $.wait(1000); //延迟  1秒  可充分利用 $.环境函数
-    }
-    await Promise.all(taskall);
-    console.log('\n================== 每日签到 ==================\n');
+    await notice()
+    console.log('\n================== 用户信息 ==================\n');
     taskall = [];
     for (let user of userList) {
         if (user.ckStatus) {
-            taskall.push(await user.task_signin());
+            taskall.push(await user.getVcode());
             await $.wait(1000); //延迟  1秒  可充分利用 $.环境函数
         }
     }
@@ -61,76 +57,180 @@ class UserInfo {
         //let ck = str.split('&')
         //this.data1 = ck[0]
         this.ckStatus = true
+        this.timestamp = ts13()
+        this.signInStatus = ''//签到状态
+        this.getVcodeStatus = ''//HK 获取状态
+        this.checkVcodeStatus = ''//HK 验证状态
 
     }
-    async user_info() {
+
+    async getVcode() {
         try {
+            let VcodeKey = '', VcodeToken = '', tg = '', bg = '', data = '', ocrRes = '', d = '', aesStr = '', aesRes = '', checkRes = '', aesStrStar = ''
             let options = {
-                url: `https://superapp-public.kiwa-tech.com/activity/wxapp/signin/queryFragment`,
+                url: 'https://scrm-prod.shuyi.org.cn/saas-gateway/api/agg-trade/v1/signIn/getVCode',
                 headers: {
-                    'Host': 'superapp-public.kiwa-tech.com',
-                    'deviceid': 'null',
-                    'accept': 'application/json, text/plain, */*',
+                    'Host': 'scrm-prod.shuyi.org.cn',
+                    'Connection': 'keep-alive',
+                    'charset': 'utf-8',
+                    'auth': this.ck,
+                    'sessionkey': '',
+                    'channel': 'wechat_micro',
+                    'User-Agent': 'Mozilla/5.0 (Linux; Android 10; MI 8 Lite Build/QKQ1.190910.002; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/107.0.5304.141 Mobile Safari/537.36 XWEB/5023 MMWEBSDK/20221206 MMWEBID/2585 MicroMessenger/8.0.32.2300(0x2800205D) WeChat/arm64 Weixin NetType/WIFI Language/zh_CN ABI/arm64 MiniProgramEnv/android',
+                    'terminal-code': 'member_wechat_micro',
+                    'releaseversion': '2023411',
+                    'hostname': 'scrm-prod.shuyi.org.cn',
+                    'httpt-taceid': '',
                     'Content-Type': 'application/json',
-                    'user-agent': 'Mozilla/5.0 (Linux; Android 10; MI 8 Lite Build/QKQ1.190910.002; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/86.0.4240.99 XWEB/4435 MMWEBSDK/20221206 Mobile Safari/537.36 MMWEBID/2585 MicroMessenger/8.0.32.2300(0x2800205D) WeChat/arm64 Weixin NetType/WIFI Language/zh_CN ABI/arm64 miniProgram/wx1ddeb67115f30d1a',
-                    'reqtype': 'APPH5',
-                    '_haidilao_app_token': this.ck,
-                    'origin': 'https://superapp-public.kiwa-tech.com',
-                    'x-requested-with': 'com.tencent.mm',
-                    'sec-fetch-site': 'same-origin',
-                    'sec-fetch-mode': 'cors',
-                    'sec-fetch-dest': 'empty',
-                    'referer': 'https://superapp-public.kiwa-tech.com/app-sign-in/?SignInToken=TOKEN_APP_43d25436-b429-4233-b8b2-1154d2f20cb1&source=MiniApp',
+                    'channelid': '',
+                    'Referer': 'https://servicewechat.com/wxa778c3d895442625/287/page-frame.html'
                 },
-                body: ''
-            }
+                body: JSON.stringify({
+                    captchaType: 'blockPuzzle',
+                    clientUid: 'slider-f55cf63d-2806-460a-a57f-5d0d7b56a0c0',
+                    ts: this.timestamp
+                })
+            };
             //console.log(options);
             let result = await httpRequest(options);
             //console.log(result);
-            if (result.success == true) {
-                DoubleLog(`账号[${this.index}]  ck验证成功: 剩余[${result.data.total}] `);
-                this.ckStatus = true
+            if (result.resultCode == '0000') {
+                VcodeToken = result.data.token
+                VcodeKey = result.data.secretKey
+                bg = result.data.originalImageBase64
+                tg = result.data.jigsawImageBase64
+                data = JSON.stringify({ "target_img": tg, "bg_img": bg })
+                data = base64_encode(data) //B64编码
+                //data = base64_decode(data)
+                //console.log(data);
+                ocrRes = await ocr('/slide/match/b64/json', data)
+                //console.log(ocrRes);
+                d = ocrRes.result.target[0]
+                //console.log(`滑动距离${d}`);
+                aesStr = JSON.stringify({ "x": d, "y": 5 }).toString()
+                aesStrStar = `{"x": ${d}, "y": 5}`
+                aesStr = aesStr.replace(/\ +/g, "");
+                //console.log(`加密前${aesStr}`);
+                //AES的ECB模式加密方法
+                aesRes = aesEncrypt(VcodeKey, aesStr)
+                aesRes = aesRes.substring(0, 22)
+                aesRes += '=='
+                //console.log(`加密后${aesRes}`);
+                //console.log(VcodeKey);
+                for (let i = 0; i < 10; i++) {
+                    checkRes = await this.checkVcode(aesRes, VcodeToken, VcodeKey, aesStrStar)
+                    if (checkRes == '0') {
+                        return
+                    }
+                }
 
             } else {
-                DoubleLog(`账号[${this.index}]  ck验证失效:,原因未知！`);
-                this.ckStatus = false
-
-                console.log(result);
+                DoubleLog(`账号[${this.index}]获取失败了呢`);
             }
         } catch (e) {
             console.log(e);
         }
     }
-    async task_signin() {
+    async checkVcode(pointJson, VcodeToken, VcodeKey, aesStrStar) {
         try {
             let options = {
-                url: `https://superapp-public.kiwa-tech.com/activity/wxapp/signin/signin`,
+                url: 'https://scrm-prod.shuyi.org.cn/saas-gateway/api/agg-trade/v1/signIn/checkVCode',
                 headers: {
-                    'Host': 'superapp-public.kiwa-tech.com',
-                    'deviceid': 'null',
-                    'accept': 'application/json, text/plain, */*',
+                    Host: 'scrm-prod.shuyi.org.cn',
+                    Connection: 'keep-alive',
+                    charset: 'utf-8',
+                    auth: this.ck,
+                    sessionkey: '',
+                    channel: 'wechat_micro',
+                    'User-Agent': 'Mozilla/5.0 (Linux; Android 10; MI 8 Lite Build/QKQ1.190910.002; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/107.0.5304.141 Mobile Safari/537.36 XWEB/5023 MMWEBSDK/20221206 MMWEBID/2585 MicroMessenger/8.0.32.2300(0x2800205D) WeChat/arm64 Weixin NetType/WIFI Language/zh_CN ABI/arm64 MiniProgramEnv/android',
+                    'terminal-code': 'member_wechat_micro',
+                    releaseversion: '2023411',
+                    hostname: 'scrm-prod.shuyi.org.cn',
+                    'httpt-taceid': '',
                     'Content-Type': 'application/json',
-                    'user-agent': 'Mozilla/5.0 (Linux; Android 10; MI 8 Lite Build/QKQ1.190910.002; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/86.0.4240.99 XWEB/4435 MMWEBSDK/20221206 Mobile Safari/537.36 MMWEBID/2585 MicroMessenger/8.0.32.2300(0x2800205D) WeChat/arm64 Weixin NetType/WIFI Language/zh_CN ABI/arm64 miniProgram/wx1ddeb67115f30d1a',
-                    'reqtype': 'APPH5',
-                    '_haidilao_app_token': this.ck,
-                    'origin': 'https://superapp-public.kiwa-tech.com',
-                    'x-requested-with': 'com.tencent.mm',
-                    'sec-fetch-site': 'same-origin',
-                    'sec-fetch-mode': 'cors',
-                    'sec-fetch-dest': 'empty',
-                    'referer': 'https://superapp-public.kiwa-tech.com/app-sign-in/?SignInToken=TOKEN_APP_43d25436-b429-4233-b8b2-1154d2f20cb1&source=MiniApp',
+                    channelid: '',
+                    Referer: 'https://servicewechat.com/wxa778c3d895442625/287/page-frame.html'
                 },
-                body: JSON.stringify({ "signinSource": "MiniApp" })
-            }
+                body: JSON.stringify({
+                    "captchaType": "blockPuzzle",
+                    "pointJson": pointJson,
+                    "token": VcodeToken
+                })
+            };
             //console.log(options);
             let result = await httpRequest(options);
             //console.log(result);
-            if (result.success == true) {
-                DoubleLog(`账号[${this.index}]  签到成功: `);
+            if (result.resultCode == '0000') {
+                //console.log(result);
+                DoubleLog(`账号[${this.index}]验证成功`);
 
+                let SignInParams = VcodeToken + '---' + aesStrStar
+                SignInParams = SignInParams.replace(/\ +/g, "");
+                //console.log(SignInParams);
+
+                let abc = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z']
+                for (let a in abc) {
+                    let SignInpointJson = aesEncrypt(VcodeKey, SignInParams)
+                    SignInpointJson = SignInpointJson.substring(0, 85)
+                    SignInpointJson += abc[a]
+                    //console.log(SignInpointJson);
+                    SignInpointJson += '=='
+                    //console.log(SignInpointJson);
+                    let res = await this.SignIn(SignInpointJson)
+                    if (res == '0') {
+                        //console.log(`签到成功`);
+                        return '0'
+                    }
+                }
+                DoubleLog(`账号[${this.index}]签到结束`);
+                //console.log(aesDecrypt(key, aesEncrypt(VcodeKey, SignInParams)));
+                return '0'
             } else {
-                DoubleLog(`账号[${this.index}]  签到失效:,原因未知！`);
-                console.log(result);
+                //console.log(result);
+                DoubleLog(`账号[${this.index}]验证失败`);
+                return '1'
+            }
+        } catch (e) {
+            console.log(e);
+        }
+    }
+    async SignIn(SignInpointJson) {
+        try {
+            let options = {
+                url: 'https://scrm-prod.shuyi.org.cn/saas-gateway/api/agg-trade/v1/signIn/insertSignInV3',
+                headers: {
+                    Host: 'scrm-prod.shuyi.org.cn',
+                    //Connection: 'keep-alive',
+                    //charset: 'utf-8',
+                    auth: this.ck,
+                    //sessionkey: '',
+                    //channel: 'wechat_micro',
+                    'User-Agent': 'Mozilla/5.0 (Linux; Android 10; MI 8 Lite Build/QKQ1.190910.002; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/107.0.5304.141 Mobile Safari/537.36 XWEB/5023 MMWEBSDK/20221206 MMWEBID/2585 MicroMessenger/8.0.32.2300(0x2800205D) WeChat/arm64 Weixin NetType/WIFI Language/zh_CN ABI/arm64 MiniProgramEnv/android',
+                    //'terminal-code': 'member_wechat_micro',
+                    //'sessionKey': '',
+                    //releaseversion: '2023411',
+                    hostname: 'scrm-prod.shuyi.org.cn',
+                    //'httpt-taceid': '',
+                    'Content-Type': 'application/json',
+                    //channelid: '',
+                    //Referer: 'https://servicewechat.com/wxa778c3d895442625/287/page-frame.html'
+                },
+                body: JSON.stringify({
+                    "captchaVerification": SignInpointJson
+                })
+            };
+            //console.log(options);
+            let result = await httpRequest(options);
+            //console.log(result);
+            if (result.resultCode == '0') {
+                //console.log(result);
+                DoubleLog(`账号[${this.index}]签到成功啦`);
+                return '0'
+            } else {
+                await $.wait(2000)
+                return '1'
+                //console.log(result);
+                //console.log(`签到失败`);
             }
         } catch (e) {
             console.log(e);
@@ -173,16 +273,13 @@ async function checkEnv() {
     return console.log(`共找到${userCount}个账号`), true;//true == !0
 }
 /////////////////////////////////////////////////////////////////////////////////////
-
 function httpRequest(options, method) {
-    //options = changeCode(options)
     typeof (method) === 'undefined' ? ('body' in options ? method = 'post' : method = 'get') : method = method
     return new Promise((resolve) => {
         $[method](options, (err, resp, data) => {
             try {
                 if (err) {
                     console.log(`${method}请求失败`);
-                    //console.log(JSON.parse(err));
                     $.logErr(err);
                     //throw new Error(err);
                     //console.log(err);
@@ -191,7 +288,7 @@ function httpRequest(options, method) {
                     //httpResponse = resp;
                     if (data) {
                         //console.log(data);
-                        data = JSON.parse(data);
+                        typeof JSON.parse(data) == 'object' ? data = JSON.parse(data) : data = data
                         resolve(data)
                     } else {
                         console.log(`请求api返回数据为空，请检查自身原因`)
@@ -205,6 +302,106 @@ function httpRequest(options, method) {
             }
         })
     })
+}
+/**
+ * 时间戳 13位
+ */
+function ts13() {
+    return Math.round(new Date().getTime()).toString();
+}
+/**
+ * base64 编码  
+ */
+function base64_encode(data) {
+    let a = Buffer.from(data, 'utf-8').toString('base64')
+    return a
+}
+
+/**
+ * base64 解码  
+ */
+function base64_decode(data) {
+    let a = Buffer.from(data, 'base64').toString('utf8')
+    return a
+}
+async function notice() {
+    try {
+        let options = {
+            url: `https://ghproxy.com/https://raw.githubusercontent.com/smallfawn/api/main/notice.json`,
+            headers: {
+                'User-Agent': ''
+            },
+        }
+        //console.log(options);
+        let result = await httpRequest(options);
+        //console.log(result);
+        if (result) {
+            if ('notice' in result) {
+                DoubleLog(`${result.notice}`);
+            } else {
+                options.url = `https://gitee.com/smallfawn/api/raw/master/notice.json`
+                result = await httpRequest(options);
+                if ('notice' in result) {
+                    DoubleLog(`${result.notice}`);
+                }
+            }
+        } else {
+        }
+    } catch (e) {
+        console.log(e);
+    }
+}
+async function ocr(path, data) {
+    try {
+        let options = {
+            url: `http://ocr.onecc.cc${path}`,
+            headers: {
+            },
+            body: `${data}`
+        }
+        //console.log(options);
+        let result = await httpRequest(options);
+        //console.log(result);
+        if (result) {
+            return result
+        } else {
+        }
+    } catch (e) {
+        console.log(e);
+    }
+}
+
+const BLOCK_SIZE = 16;
+
+function pad(text) {
+    const padding = BLOCK_SIZE - text.length % BLOCK_SIZE;
+    return text + String.fromCharCode(padding).repeat(padding);
+}
+
+function unpad(text) {
+    const padding = text.charCodeAt(text.length - 1);
+    return text.slice(0, text.length - padding);
+}
+
+function aesEncrypt(key, data) {
+    const cipher = crypto.createCipheriv('aes-128-ecb', key, '');
+    let encrypted = cipher.update(pad(data), 'utf8', 'base64');
+    encrypted += cipher.final('base64');
+    return encrypted;
+}
+async function hitokoto() { // 随机一言
+    try {
+        let options = {
+            url: 'https://v1.hitokoto.cn/',
+            headers: {}
+        };
+        //console.log(options);
+        let result = await httpRequest(options);
+        //console.log(result);
+        return result.hitokoto
+    } catch (error) {
+        console.log(error);
+    }
 }
 // 双平台log输出
 function DoubleLog(data) {
@@ -223,7 +420,6 @@ async function SendMsg(message) {
     if (!message) return;
     if (Notify > 0) {
         if ($.isNode()) {
-            var notify = require("./sendNotify");
             await notify.sendNotify($.name, message)
         } else {
             $.msg($.name, '', message)

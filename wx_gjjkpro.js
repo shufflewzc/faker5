@@ -1,25 +1,26 @@
 /**
- * 海底捞小程序签到
- * cron 9 15 * * *  hdl.js
- * 
+ * 高济健康pro小程序签到
+ * cron 7 5 * * *  wx_gjjkpro.js
+ * 活动入口 首页 智慧小屋
  * ========= 青龙--配置文件 ===========
  * # 项目名称
- * export hdl_data='token @ token'
+ * export wx_gjjkpro_data='userId&authorization'
  * 
  * 多账号用 换行 或 @ 分割
- * 抓包 https://superapp-public.kiwa-tech.com/activity/wxapp , 找到 _haidilao_app_token 即可
+ * 抓包 https://api.gaojihealth.cn/fund/api/ , 找到userId&authorization即可
  * ====================================
  *   
  */
 
 
 
-const $ = new Env("海底捞小程序签到");
-const ckName = "hdl_data";
+const $ = new Env("高济健康pro小程序签到");
+const ckName = "wx_gjjkpro_data";
 //-------------------- 一般不动变量区域 -------------------------------------
 const Notify = 1;		 //0为关闭通知,1为打开通知,默认为1
+const notify = $.isNode() ? require('./sendNotify') : '';
 let debug = 1;           //Debug调试   0关闭  1开启
-let envSplitor = ["@", "\n"]; //多账号分隔符
+let envSplitor = ["@"]; //多账号分隔符
 let ck = msg = '';       //let ck,msg
 let host, hostname;
 let userCookie = ($.isNode() ? process.env[ckName] : $.getdata(ckName)) || '';
@@ -31,21 +32,36 @@ let userCount = 0;
 
 async function start() {
 
-
     console.log('\n================== 用户CK ==================\n');
     taskall = [];
     for (let user of userList) {
         taskall.push(await user.user_info());
-        await $.wait(1000); //延迟  1秒  可充分利用 $.环境函数
+        await $.wait(3000); //延迟  1秒  可充分利用 $.环境函数
     }
     await Promise.all(taskall);
-    console.log('\n================== 每日签到 ==================\n');
+    console.log('\n================== 签到 ==================\n');
     taskall = [];
     for (let user of userList) {
         if (user.ckStatus) {
             taskall.push(await user.task_signin());
-            await $.wait(1000); //延迟  1秒  可充分利用 $.环境函数
+            await $.wait(3000); //延迟  1秒  可充分利用 $.环境函数
         }
+
+    }
+    await Promise.all(taskall);
+    console.log('\n================== 任务 ==================\n');
+    taskall = [];
+    let tasktmp;
+    for (let user of userList) {
+        if (user.ckStatus) {
+            for(let tasknum in user.taskList){
+                tasktmp = user.taskList[tasknum]
+                taskall.push(await user.task_do(tasktmp));
+                await $.wait(3000); //延迟  1秒  可充分利用 $.环境函数
+           }
+
+        }
+
     }
     await Promise.all(taskall);
 
@@ -57,81 +73,89 @@ async function start() {
 class UserInfo {
     constructor(str) {
         this.index = ++userIdx;
-        this.ck = str.split('&')[0]; //单账号多变量分隔符
+        this.userId = str.split('&')[0]; //单账号多变量分隔符
+        this.ck = str.split('&')[1];
+        this.ck = this.ck.replace('bearer', 'bearer ')
         //let ck = str.split('&')
         //this.data1 = ck[0]
         this.ckStatus = true
+        this.headersPost = {
+            'Host': 'api.gaojihealth.cn',
+            'Content-Type': 'application/json;charset=UTF-8',
+            'authorization': this.ck,
+        }
+        this.headersGet = {
+            'Host': 'api.gaojihealth.cn',
+            'authorization': this.ck,
+        }
+        this.taskList = [{ "browsePageId": "100004", "browsePageUrl": "/modules/integral/integral-mall/index", "taskId": 729 }, { "browsePageId": "100015", "browsePageUrl": "/modules/storeEmployeeQRcode/index?pageType=1", "taskId": 730 }]
 
     }
-    async user_info() {
+
+    async user_info() {//userinfo
         try {
             let options = {
-                url: `https://superapp-public.kiwa-tech.com/activity/wxapp/signin/queryFragment`,
-                headers: {
-                    'Host': 'superapp-public.kiwa-tech.com',
-                    'deviceid': 'null',
-                    'accept': 'application/json, text/plain, */*',
-                    'Content-Type': 'application/json',
-                    'user-agent': 'Mozilla/5.0 (Linux; Android 10; MI 8 Lite Build/QKQ1.190910.002; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/86.0.4240.99 XWEB/4435 MMWEBSDK/20221206 Mobile Safari/537.36 MMWEBID/2585 MicroMessenger/8.0.32.2300(0x2800205D) WeChat/arm64 Weixin NetType/WIFI Language/zh_CN ABI/arm64 miniProgram/wx1ddeb67115f30d1a',
-                    'reqtype': 'APPH5',
-                    '_haidilao_app_token': this.ck,
-                    'origin': 'https://superapp-public.kiwa-tech.com',
-                    'x-requested-with': 'com.tencent.mm',
-                    'sec-fetch-site': 'same-origin',
-                    'sec-fetch-mode': 'cors',
-                    'sec-fetch-dest': 'empty',
-                    'referer': 'https://superapp-public.kiwa-tech.com/app-sign-in/?SignInToken=TOKEN_APP_43d25436-b429-4233-b8b2-1154d2f20cb1&source=MiniApp',
-                },
-                body: ''
+                url: `https://api.gaojihealth.cn/fund/api/noauth/appCoupon/findDkSignActivityPage?businessId=212798&userId=${this.userId}&version=1.4`,
+                headers: this.headersGet,
             }
             //console.log(options);
             let result = await httpRequest(options);
             //console.log(result);
-            if (result.success == true) {
-                DoubleLog(`账号[${this.index}]  ck验证成功: 剩余[${result.data.total}] `);
+            if (result.runFlag == true) {
+                DoubleLog(`账号[${this.index}]  ck验证成功: G金[${result.integralResponse.currentFund}] `);
                 this.ckStatus = true
-
             } else {
-                DoubleLog(`账号[${this.index}]  ck验证失效:,原因未知！`);
+                DoubleLog(`账号[${this.index}]  ck验证失效,原因未知！`);
                 this.ckStatus = false
-
                 console.log(result);
             }
         } catch (e) {
             console.log(e);
         }
     }
-    async task_signin() {
+    async task_signin() {//userinfo
         try {
             let options = {
-                url: `https://superapp-public.kiwa-tech.com/activity/wxapp/signin/signin`,
-                headers: {
-                    'Host': 'superapp-public.kiwa-tech.com',
-                    'deviceid': 'null',
-                    'accept': 'application/json, text/plain, */*',
-                    'Content-Type': 'application/json',
-                    'user-agent': 'Mozilla/5.0 (Linux; Android 10; MI 8 Lite Build/QKQ1.190910.002; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/86.0.4240.99 XWEB/4435 MMWEBSDK/20221206 Mobile Safari/537.36 MMWEBID/2585 MicroMessenger/8.0.32.2300(0x2800205D) WeChat/arm64 Weixin NetType/WIFI Language/zh_CN ABI/arm64 miniProgram/wx1ddeb67115f30d1a',
-                    'reqtype': 'APPH5',
-                    '_haidilao_app_token': this.ck,
-                    'origin': 'https://superapp-public.kiwa-tech.com',
-                    'x-requested-with': 'com.tencent.mm',
-                    'sec-fetch-site': 'same-origin',
-                    'sec-fetch-mode': 'cors',
-                    'sec-fetch-dest': 'empty',
-                    'referer': 'https://superapp-public.kiwa-tech.com/app-sign-in/?SignInToken=TOKEN_APP_43d25436-b429-4233-b8b2-1154d2f20cb1&source=MiniApp',
-                },
-                body: JSON.stringify({ "signinSource": "MiniApp" })
+                url: `https://api.gaojihealth.cn/gulosity/api/dkUserEvent/everyDaySign`,
+                headers: this.headersPost,
+                body: JSON.stringify({ "businessId": 212798, "userId": this.userId, "taskId": 372 })
             }
+            this.headersPost['Content-Length'] = options.body.length
+
             //console.log(options);
             let result = await httpRequest(options);
             //console.log(result);
-            if (result.success == true) {
-                DoubleLog(`账号[${this.index}]  签到成功: `);
-
+            if (result.opCode == 200) {
+                DoubleLog(`账号[${this.index}]  签到成功: [${result.prizeInfo}] `);
             } else {
-                DoubleLog(`账号[${this.index}]  签到失效:,原因未知！`);
+                DoubleLog(`账号[${this.index}]  签到失效,原因未知！`);
                 console.log(result);
             }
+        } catch (e) {
+            console.log(e);
+        }
+    }
+    async task_do(tasktmp) {//DO
+
+        try {
+            let options = {
+                url: `https://api.gaojihealth.cn/gulosity/api/dkUserEvent/browsePageCompleteTaskEvent`,
+                headers: this.headersPost,
+                body: JSON.stringify(tasktmp)
+            }
+            this.headersPost['Content-Length'] = options.body.length
+
+            //console.log(options);
+            
+            let result = await httpRequest(options)
+            if (result == 'true') {
+                DoubleLog(`账号[${this.index}]  执行任务成功: [${tasktmp.taskId}] `);
+            } else {
+                DoubleLog(`账号[${this.index}]  执行任务失效,原因未知！`);
+                console.log(result);
+            }
+            //console.log(result);
+
         } catch (e) {
             console.log(e);
         }
@@ -175,14 +199,12 @@ async function checkEnv() {
 /////////////////////////////////////////////////////////////////////////////////////
 
 function httpRequest(options, method) {
-    //options = changeCode(options)
     typeof (method) === 'undefined' ? ('body' in options ? method = 'post' : method = 'get') : method = method
     return new Promise((resolve) => {
         $[method](options, (err, resp, data) => {
             try {
                 if (err) {
                     console.log(`${method}请求失败`);
-                    //console.log(JSON.parse(err));
                     $.logErr(err);
                     //throw new Error(err);
                     //console.log(err);
@@ -191,7 +213,7 @@ function httpRequest(options, method) {
                     //httpResponse = resp;
                     if (data) {
                         //console.log(data);
-                        data = JSON.parse(data);
+                        typeof JSON.parse(data) == 'object' ? data = JSON.parse(data) : data = data
                         resolve(data)
                     } else {
                         console.log(`请求api返回数据为空，请检查自身原因`)
@@ -205,6 +227,9 @@ function httpRequest(options, method) {
             }
         })
     })
+}
+function ts13() {
+    return Math.round(new Date().getTime()).toString();
 }
 // 双平台log输出
 function DoubleLog(data) {
@@ -223,7 +248,6 @@ async function SendMsg(message) {
     if (!message) return;
     if (Notify > 0) {
         if ($.isNode()) {
-            var notify = require("./sendNotify");
             await notify.sendNotify($.name, message)
         } else {
             $.msg($.name, '', message)

@@ -20,7 +20,7 @@ let GacmotorCookies = './GacmotorCookies.json';//指定文件目录
 const $ = new Env("广汽传祺");
 const notify = $.isNode() ? require('./sendNotify') : '';
 //const { updateEnv11, getEnvs, updateEnv } = require("./ql")
-const appVersion = "5.1.12"
+const appVersion = "5.1.22"
 //let ckName = "gacmotorToken";
 //let envSplitor = ["@", "\n"]; //多账号分隔符
 let strSplitor = "#"; //多变量分隔符
@@ -874,7 +874,7 @@ class UserInfo {
             let { body: result } = await httpRequest(options);
             //console.log(options);
             result = JSON.parse(result);
-            //console.log(result);
+            console.log(result);
             if (result.resultCode == "0") {
                 if (result.data == true) {
                     //已签
